@@ -21,7 +21,7 @@ connection.
 - separate activity and onset TM ensembles;
 - acoustic onset/velocity tracking without multiplying velocity by classifier
   confidence;
-- mono or stereo audio input (stereo is analysed as mono);
+- mono or stereo VST3 input (stereo is analysed as mono), and mono LV2 input;
 - 44.1 kHz and 48 kHz host sample rates;
 - dry-audio switch so a synth can be placed directly after the converter;
 - no heap allocation in the realtime prediction callback;

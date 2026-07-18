@@ -112,7 +112,7 @@ jobs:
           cmake "-DTMGM_VERIFY_MODEL_ROOT=$model" -P cmake/VerifyModelPackage.cmake
           binary="$bundle/Contents/MacOS/TM Guitar MIDI"
           test -f "$binary"
-          lipo -verify_arch arm64 x86_64 "$binary"
+          lipo "$binary" -verify_arch arm64 x86_64
           codesign --verify --deep --strict --verbose=2 "$bundle"
           stage="staging/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-macos-universal-vst3"
           mkdir -p "$stage/models/strict-cap16-v3" dist

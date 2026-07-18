@@ -67,6 +67,8 @@ ctest --preset linux-lv2
 ```
 
 Copy the complete `.lv2` directory to `~/.lv2` or `/usr/lib/lv2`.
+The current LV2 descriptor exposes one mono audio input/output pair plus MIDI
+output. VST3 hosts can negotiate either mono or stereo audio buses.
 
 ## Offline/dependency-controlled configure
 

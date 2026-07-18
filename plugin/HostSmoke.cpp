@@ -15,9 +15,13 @@ namespace {
 #if defined(TMGM_HOST_TEST_VST3)
 using TestedPluginFormat = juce::VST3PluginFormat;
 constexpr std::string_view kExpectedFormat = "VST3";
+constexpr std::string_view kExpectedLayoutSummary = "mono+stereo";
 #elif defined(TMGM_HOST_TEST_LV2)
 using TestedPluginFormat = juce::LV2PluginFormat;
 constexpr std::string_view kExpectedFormat = "LV2";
+constexpr std::string_view kExpectedLayoutSummary = "mono";
+constexpr std::string_view kExpectedPluginIdentifier =
+    "urn:tmgm:plugin:tm-guitar-midi";
 #else
 #error "Select exactly one host-smoke plug-in format"
 #endif
@@ -39,7 +43,7 @@ juce::AudioProcessorParameter& parameter_named(
         }
     }
     throw std::runtime_error(
-        "missing VST parameter: " + name.toStdString());
+        "missing plug-in parameter: " + name.toStdString());
 }
 
 void require_audio_is_zero(const juce::AudioBuffer<float>& audio) {
@@ -83,7 +87,7 @@ struct MidiAudit {
             }
             const auto pitch = static_cast<std::size_t>(message.getNoteNumber());
             require(pitch >= 40U && pitch <= 88U,
-                    "VST emitted a pitch outside MIDI 40..88");
+                    "plug-in emitted a pitch outside MIDI 40..88");
             if (message.isNoteOn()) {
                 ++note_ons;
                 if (active[pitch]) ++duplicate_ons;
@@ -111,14 +115,14 @@ struct MidiAudit {
 void set_mono_layout(juce::AudioProcessor& processor) {
     auto layout = processor.getBusesLayout();
     require(!layout.inputBuses.isEmpty() && !layout.outputBuses.isEmpty(),
-            "VST exposes no main audio buses");
+            "plug-in exposes no main audio buses");
     layout.inputBuses.getReference(0) = juce::AudioChannelSet::mono();
     layout.outputBuses.getReference(0) = juce::AudioChannelSet::mono();
     require(processor.setBusesLayout(layout),
-            "VST rejected its declared mono layout");
+            "plug-in rejected its declared mono layout");
     require(processor.getTotalNumInputChannels() == 1
                 && processor.getTotalNumOutputChannels() == 1,
-            "VST mono bus geometry differs");
+            "plug-in mono bus geometry differs");
 }
 
 void test_stereo_layout(juce::AudioProcessor& processor) {
@@ -126,10 +130,10 @@ void test_stereo_layout(juce::AudioProcessor& processor) {
     layout.inputBuses.getReference(0) = juce::AudioChannelSet::stereo();
     layout.outputBuses.getReference(0) = juce::AudioChannelSet::stereo();
     require(processor.setBusesLayout(layout),
-            "VST rejected supported stereo layout");
+            "plug-in rejected supported stereo layout");
     require(processor.getTotalNumInputChannels() == 2
                 && processor.getTotalNumOutputChannels() == 2,
-            "VST stereo bus geometry differs");
+            "plug-in stereo bus geometry differs");
     set_mono_layout(processor);
 }
 
@@ -238,7 +242,16 @@ int main(const int argc, char** argv) {
         const juce::String plugin_path = juce::File{argv[1]}.getFullPathName();
         TestedPluginFormat format;
         juce::OwnedArray<juce::PluginDescription> descriptions;
+#if defined(TMGM_HOST_TEST_LV2)
+        const auto plugin_parent =
+            juce::File{plugin_path}.getParentDirectory().getFullPathName();
+        format.searchPathsForPlugins(
+            juce::FileSearchPath{plugin_parent}, false, false);
+        format.findAllTypesForFile(
+            descriptions, juce::String{kExpectedPluginIdentifier.data()});
+#else
         format.findAllTypesForFile(descriptions, plugin_path);
+#endif
         require(descriptions.size() == 1,
                 "plug-in scan did not return exactly one audio class");
         const auto& description = *descriptions[0];
@@ -259,7 +272,9 @@ int main(const int argc, char** argv) {
         require(!instance->acceptsMidi(),
                 "plug-in unexpectedly requires MIDI input");
         set_mono_layout(*instance);
+#if defined(TMGM_HOST_TEST_VST3)
         test_stereo_layout(*instance);
+#endif
         test_dry_and_status(*instance);
 
         MidiAudit audit;
@@ -270,7 +285,7 @@ int main(const int argc, char** argv) {
             auto render_instance = format.createInstanceFromDescription(
                 description, 44100.0, 512, render_error);
             require(render_instance != nullptr,
-                    std::string("VST3 render instantiate failed: ")
+                    std::string("plug-in render instantiate failed: ")
                         + render_error.toStdString());
             audit = process_wav(*render_instance, juce::File{argv[2]});
             require(audit.note_ons > 0U,
@@ -285,7 +300,8 @@ int main(const int argc, char** argv) {
 
         std::cout << kExpectedFormat << " host smoke passed: name='"
                   << description.name << "' uid="
-                  << description.uniqueId << " mono+stereo, MIDI-out, "
+                  << description.uniqueId << ' ' << kExpectedLayoutSummary
+                  << ", MIDI-out, "
                   << "model/status 48k, Dry Off/On";
         if (argc == 3) {
             std::cout << ", wav note_on=" << audit.note_ons
