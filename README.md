@@ -73,9 +73,10 @@ sample rate is supported.
 
 The repository contains the complete TM/STFT+ training and native export code.
 The small inference package used by the preview build is versioned under
-[`models/strict-cap16-v3`](models/strict-cap16-v3). Tagged preview releases may
-also publish it as a separately labelled, non-commercial research-weights
-archive.
+[`models/strict-cap16-v3`](models/strict-cap16-v3). Every platform release is
+self-contained: CMake copies the authenticated package into the `.vst3` or
+`.lv2` bundle, and users do not download or install weights separately. See
+[Installing](INSTALL.md) for the complete bundle paths.
 
 Start with:
 

@@ -94,10 +94,7 @@ jobs:
           $stage = "staging/TM-Guitar-Midi-$env:TMGM_ARTIFACT_VERSION-windows-x64-vst3"
           New-Item -ItemType Directory -Force $stage | Out-Null
           Copy-Item -LiteralPath $bundle -Destination $stage -Recurse
-          Copy-Item LICENSE, WEIGHTS_LICENSE.md, CREDITS.md, THIRD_PARTY_NOTICES.md -Destination $stage
-          $modelDocs = Join-Path $stage 'models/strict-cap16-v3'
-          New-Item -ItemType Directory -Force $modelDocs | Out-Null
-          Copy-Item models/strict-cap16-v3/MODEL_CARD.md, models/strict-cap16-v3/SHA256SUMS -Destination $modelDocs
+          Copy-Item INSTALL.md, LICENSE, WEIGHTS_LICENSE.md, CREDITS.md, THIRD_PARTY_NOTICES.md -Destination $stage
           New-Item -ItemType Directory -Force dist | Out-Null
           $archive = "dist/TM-Guitar-Midi-$env:TMGM_ARTIFACT_VERSION-windows-x64-vst3.zip"
           Compress-Archive -LiteralPath $stage -DestinationPath $archive -CompressionLevel Optimal
@@ -115,11 +112,9 @@ jobs:
           lipo "$binary" -verify_arch arm64 x86_64
           codesign --verify --deep --strict --verbose=2 "$bundle"
           stage="staging/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-macos-universal-vst3"
-          mkdir -p "$stage/models/strict-cap16-v3" dist
+          mkdir -p "$stage" dist
           ditto "$bundle" "$stage/TM Guitar MIDI.vst3"
-          cp LICENSE WEIGHTS_LICENSE.md CREDITS.md THIRD_PARTY_NOTICES.md "$stage/"
-          cp models/strict-cap16-v3/MODEL_CARD.md \
-            models/strict-cap16-v3/SHA256SUMS "$stage/models/strict-cap16-v3/"
+          cp INSTALL.md LICENSE WEIGHTS_LICENSE.md CREDITS.md THIRD_PARTY_NOTICES.md "$stage/"
           mkdir -p dist
           archive="dist/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-macos-universal-vst3.zip"
           ditto -c -k --sequesterRsrc --keepParent "$stage" "$archive"
@@ -140,11 +135,9 @@ jobs:
             exit 1
           fi
           stage="staging/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-linux-x64-lv2"
-          mkdir -p "$stage/models/strict-cap16-v3" dist
+          mkdir -p "$stage" dist
           cp -a "$bundle" "$stage/"
-          cp LICENSE WEIGHTS_LICENSE.md CREDITS.md THIRD_PARTY_NOTICES.md "$stage/"
-          cp models/strict-cap16-v3/MODEL_CARD.md \
-            models/strict-cap16-v3/SHA256SUMS "$stage/models/strict-cap16-v3/"
+          cp INSTALL.md LICENSE WEIGHTS_LICENSE.md CREDITS.md THIRD_PARTY_NOTICES.md "$stage/"
           archive="dist/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-linux-x64-lv2.tar.gz"
           tar -C "$(dirname "$stage")" -czf "$archive" "$(basename "$stage")"
           sha256sum "$archive"
