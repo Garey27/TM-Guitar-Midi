@@ -140,6 +140,22 @@ void test_stereo_layout(juce::AudioProcessor& processor) {
 void test_dry_and_status(juce::AudioProcessor& processor) {
     processor.setRateAndBufferSizeDetails(48000.0, 512);
     processor.prepareToPlay(48000.0, 512);
+    auto& dry = parameter_named(processor, "Dry Audio");
+    require(dry.getValue() < 0.5F, "Dry Audio does not default Off");
+
+    juce::AudioBuffer<float> audio{1, 512};
+    for (int sample = 0; sample < audio.getNumSamples(); ++sample) {
+        audio.setSample(0, sample,
+            static_cast<float>(sample - 256) * 1.0e-9F);
+    }
+    juce::MidiBuffer midi;
+    processor.processBlock(audio, midi);
+    require_audio_is_zero(audio);
+
+    // LV2 reports processor-originated parameter changes to its host through
+    // patch:Set events emitted by run(). The hosted values therefore become
+    // observable only after the first process block, unlike VST3's immediate
+    // parameter notification path.
     for (auto* parameter : processor.getParameters()) {
         if (parameter != nullptr) {
             std::cerr << "parameter " << parameter->getName(128)
@@ -155,17 +171,8 @@ void test_dry_and_status(juce::AudioProcessor& processor) {
                 processor, "Sample Rate 44.1/48 kHz (status)").getValue()
                 >= 0.5F,
             "host instance rejected 48 kHz");
-    auto& dry = parameter_named(processor, "Dry Audio");
-    require(dry.getValue() < 0.5F, "Dry Audio does not default Off");
-
-    juce::AudioBuffer<float> audio{1, 512};
-    for (int sample = 0; sample < audio.getNumSamples(); ++sample) {
-        audio.setSample(0, sample,
-            static_cast<float>(sample - 256) * 1.0e-9F);
-    }
-    juce::MidiBuffer midi;
-    processor.processBlock(audio, midi);
-    require_audio_is_zero(audio);
+    require(processor.getLatencySamples() > 0,
+            "host instance reported zero causal frontend latency");
 
     dry.setValueNotifyingHost(1.0F);
     for (int sample = 0; sample < audio.getNumSamples(); ++sample) {
