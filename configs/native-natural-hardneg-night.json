@@ -1,0 +1,35 @@
+{
+  "defaults": {
+    "epochs": 30,
+    "clauses": 256,
+    "threshold": 128,
+    "max_literals": 64,
+    "samples_per_launch": 128,
+    "validation_patience": 6,
+    "activity": {
+      "specificity": 5.0,
+      "negative_samples": 6.0,
+      "seed": 20260718
+    },
+    "onset": {
+      "epochs": 24,
+      "specificity": 4.0,
+      "seed": 20270718,
+      "onset_sustain_hard_negatives": true
+    }
+  },
+  "experiments": [
+    {
+      "name": "c256-natural-q0-hardneg",
+      "onset": {
+        "negative_samples": 0.0
+      }
+    },
+    {
+      "name": "c256-natural-q025-hardneg",
+      "onset": {
+        "negative_samples": 0.25
+      }
+    }
+  ]
+}

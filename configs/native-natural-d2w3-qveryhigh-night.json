@@ -1,0 +1,33 @@
+{
+  "defaults": {
+    "epochs": 30,
+    "clauses": 256,
+    "threshold": 128,
+    "max_literals": 64,
+    "samples_per_launch": 128,
+    "validation_patience": 6,
+    "activity": {
+      "specificity": 5.0,
+      "negative_samples": 6.0,
+      "seed": 20260718
+    },
+    "onset": {
+      "specificity": 4.0,
+      "seed": 20270718
+    }
+  },
+  "experiments": [
+    {
+      "name": "c256-natural-d2w3-q16",
+      "onset": {
+        "negative_samples": 16.0
+      }
+    },
+    {
+      "name": "c256-natural-d2w3-q32",
+      "onset": {
+        "negative_samples": 32.0
+      }
+    }
+  ]
+}

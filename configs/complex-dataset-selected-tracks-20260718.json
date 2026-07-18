@@ -1,0 +1,156 @@
+{
+  "schema": "tmgm-complex-dataset-selection-v1",
+  "selection_policy": {
+    "count_per_source": 2,
+    "ranking_inputs": "NeuralNote teacher events only; no TM prediction scores",
+    "criteria": [
+      "complete performance rather than isolated-note exercise",
+      "duration and event density",
+      "mean/maximum polyphony and time at polyphony >= 2/4",
+      "multi-note onset groups"
+    ],
+    "tm_threshold_tuning": false,
+    "production_modified": false
+  },
+  "tracks": [
+    {
+      "package_id": "goat-item_109",
+      "source": "goat",
+      "split": "test",
+      "dataset_id": "item_109",
+      "wav": "datasets/audio/goat/data/item_109/item_109.wav",
+      "teacher_events": "datasets/teacher/goat/test/item_109.events.tsv",
+      "dataset_reference": {
+        "kind": "absolute-midi",
+        "path": "datasets/audio/goat/data/item_109/item_109_fine_aligned.mid",
+        "note": "GOAT fine-aligned gold MIDI, normalized to fixed-tempo absolute wall-clock time."
+      },
+      "complexity": {
+        "duration_seconds": 304.657,
+        "teacher_events": 1801,
+        "events_per_second": 5.912,
+        "mean_polyphony": 2.721,
+        "max_polyphony": 7,
+        "polyphony_ge_2_fraction": 0.7867,
+        "polyphony_ge_4_fraction": 0.3701,
+        "chord_groups_ge_3_70ms": 249,
+        "chord_groups_ge_4_70ms": 125
+      }
+    },
+    {
+      "package_id": "goat-item_149",
+      "source": "goat",
+      "split": "test",
+      "dataset_id": "item_149",
+      "wav": "datasets/audio/goat/data/item_149/item_149.wav",
+      "teacher_events": "datasets/teacher/goat/test/item_149.events.tsv",
+      "dataset_reference": null,
+      "dataset_reference_unavailable_reason": "GOAT fine-aligned MIDI is absent for item_149; its upstream alignment was rejected.",
+      "complexity": {
+        "duration_seconds": 166.542,
+        "teacher_events": 1379,
+        "events_per_second": 8.280,
+        "mean_polyphony": 4.196,
+        "max_polyphony": 7,
+        "polyphony_ge_2_fraction": 0.9647,
+        "polyphony_ge_4_fraction": 0.8559,
+        "chord_groups_ge_3_70ms": 297,
+        "chord_groups_ge_4_70ms": 253
+      }
+    },
+    {
+      "package_id": "guitarset-05_SS2-88-F_comp_mix",
+      "source": "guitarset",
+      "split": "test",
+      "dataset_id": "05_SS2-88-F_comp_mix",
+      "wav": "datasets/audio/guitarset/05_SS2-88-F_comp_mix.wav",
+      "teacher_events": "datasets/teacher/guitarset/test/05_SS2-88-F_comp_mix.events.tsv",
+      "dataset_reference": {
+        "kind": "labels-tsv",
+        "path": "datasets/annotations/guitarset_05_SS2-88-F_comp.tsv",
+        "note": "GuitarSet JAMS notes converted to absolute-time TSV, then fixed-tempo MIDI."
+      },
+      "complexity": {
+        "duration_seconds": 43.629,
+        "teacher_events": 353,
+        "events_per_second": 8.091,
+        "mean_polyphony": 3.475,
+        "max_polyphony": 6,
+        "polyphony_ge_2_fraction": 0.9364,
+        "polyphony_ge_4_fraction": 0.5881,
+        "chord_groups_ge_3_70ms": 33,
+        "chord_groups_ge_4_70ms": 10
+      }
+    },
+    {
+      "package_id": "guitarset-05_Rock1-130-A_comp_mix",
+      "source": "guitarset",
+      "split": "test",
+      "dataset_id": "05_Rock1-130-A_comp_mix",
+      "wav": "datasets/audio/guitarset/05_Rock1-130-A_comp_mix.wav",
+      "teacher_events": "datasets/teacher/guitarset/test/05_Rock1-130-A_comp_mix.events.tsv",
+      "dataset_reference": {
+        "kind": "labels-tsv",
+        "path": "datasets/annotations/guitarset_05_Rock1-130-A_comp.tsv",
+        "note": "GuitarSet JAMS notes converted to absolute-time TSV, then fixed-tempo MIDI."
+      },
+      "complexity": {
+        "duration_seconds": 22.147,
+        "teacher_events": 296,
+        "events_per_second": 13.365,
+        "mean_polyphony": 3.686,
+        "max_polyphony": 6,
+        "polyphony_ge_2_fraction": 0.9230,
+        "polyphony_ge_4_fraction": 0.7662,
+        "chord_groups_ge_3_70ms": 72,
+        "chord_groups_ge_4_70ms": 52
+      }
+    },
+    {
+      "package_id": "guitar-techs-directinput_09",
+      "source": "guitar-techs",
+      "split": "validation",
+      "dataset_id": "P3_music_audio_directinput_directinput_09.",
+      "wav": "datasets/audio/guitar-techs/P3_music/audio/directinput/directinput_09.wav",
+      "teacher_events": "datasets/teacher/guitar-techs/validation/P3_music_audio_directinput_directinput_09..events.tsv",
+      "dataset_reference": {
+        "kind": "labels-tsv",
+        "path": "datasets/annotations/guitartechs_P3_music_09.tsv",
+        "note": "Dataset tempo map was resolved to absolute seconds before export; unsafe raw Guitar-TECHS MIDI is deliberately excluded."
+      },
+      "complexity": {
+        "duration_seconds": 39.000,
+        "teacher_events": 200,
+        "events_per_second": 5.128,
+        "mean_polyphony": 2.894,
+        "max_polyphony": 7,
+        "polyphony_ge_2_fraction": 0.9369,
+        "polyphony_ge_4_fraction": 0.2783,
+        "chord_groups_ge_3_40ms": 35
+      }
+    },
+    {
+      "package_id": "guitar-techs-directinput_10",
+      "source": "guitar-techs",
+      "split": "validation",
+      "dataset_id": "P3_music_audio_directinput_directinput_10.",
+      "wav": "datasets/audio/guitar-techs/P3_music/audio/directinput/directinput_10.wav",
+      "teacher_events": "datasets/teacher/guitar-techs/validation/P3_music_audio_directinput_directinput_10..events.tsv",
+      "dataset_reference": {
+        "kind": "labels-tsv",
+        "path": "datasets/annotations/guitartechs_P3_music_10.tsv",
+        "note": "Dataset tempo map was resolved to absolute seconds before export; unsafe raw Guitar-TECHS MIDI is deliberately excluded."
+      },
+      "complexity": {
+        "duration_seconds": 51.500,
+        "teacher_events": 313,
+        "events_per_second": 6.078,
+        "mean_polyphony": 2.179,
+        "max_polyphony": 6,
+        "polyphony_ge_2_fraction": 0.8010,
+        "polyphony_ge_4_fraction": 0.0120,
+        "chord_groups_ge_3_40ms": 26
+      }
+    }
+  ]
+}

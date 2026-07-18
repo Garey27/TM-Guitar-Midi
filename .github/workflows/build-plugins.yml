@@ -1,0 +1,152 @@
+name: Build plug-ins
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      artifact_version:
+        description: Version text used in archive filenames
+        required: false
+        type: string
+        default: snapshot
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-build-${{ github.workflow }}-${{ github.ref }}-${{ inputs.artifact_version || 'snapshot' }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows x64 VST3
+            os: windows-2025
+            package: windows-x64-vst3
+            preset: windows-vst3
+          - label: macOS Universal VST3
+            os: macos-15
+            package: macos-universal-vst3
+            preset: macos-vst3
+          - label: Linux x64 LV2
+            os: ubuntu-24.04
+            package: linux-x64-lv2
+            preset: linux-lv2
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      TMGM_ARTIFACT_VERSION: ${{ inputs.artifact_version || 'snapshot' }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            ninja-build xvfb \
+            libfontconfig1-dev libfreetype6-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxext-dev \
+            libxinerama-dev libxrandr-dev libxrender-dev
+
+      - name: Configure with Ninja preset
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Run Windows tests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ctest --preset ${{ matrix.preset }}
+
+      - name: Run macOS tests
+        if: runner.os == 'macOS'
+        run: ctest --preset ${{ matrix.preset }}
+
+      - name: Run Linux tests under Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ctest --preset ${{ matrix.preset }}
+
+      - name: Package Windows VST3
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bundle = Resolve-Path 'build/windows-vst3/plugin/TM_GuitarMidi_artefacts/Release/VST3/TM Guitar MIDI.vst3'
+          $model = Join-Path $bundle 'Contents/Resources/TMModel'
+          cmake "-DTMGM_VERIFY_MODEL_ROOT=$model" -P cmake/VerifyModelPackage.cmake
+          $binary = Get-ChildItem (Join-Path $bundle 'Contents/x86_64-win') -Filter '*.vst3' -File
+          if ($binary.Count -ne 1) { throw 'Expected exactly one x64 VST3 binary' }
+          $stage = "staging/TM-Guitar-Midi-$env:TMGM_ARTIFACT_VERSION-windows-x64-vst3"
+          New-Item -ItemType Directory -Force $stage | Out-Null
+          Copy-Item -LiteralPath $bundle -Destination $stage -Recurse
+          Copy-Item LICENSE, WEIGHTS_LICENSE.md, CREDITS.md, THIRD_PARTY_NOTICES.md -Destination $stage
+          $modelDocs = Join-Path $stage 'models/strict-cap16-v3'
+          New-Item -ItemType Directory -Force $modelDocs | Out-Null
+          Copy-Item models/strict-cap16-v3/MODEL_CARD.md, models/strict-cap16-v3/SHA256SUMS -Destination $modelDocs
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $archive = "dist/TM-Guitar-Midi-$env:TMGM_ARTIFACT_VERSION-windows-x64-vst3.zip"
+          Compress-Archive -LiteralPath $stage -DestinationPath $archive -CompressionLevel Optimal
+          Get-FileHash $archive -Algorithm SHA256 | Format-List
+
+      - name: Package macOS universal VST3
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          bundle='build/macos-vst3/plugin/TM_GuitarMidi_artefacts/Release/VST3/TM Guitar MIDI.vst3'
+          model="$bundle/Contents/Resources/TMModel"
+          cmake "-DTMGM_VERIFY_MODEL_ROOT=$model" -P cmake/VerifyModelPackage.cmake
+          binary="$bundle/Contents/MacOS/TM Guitar MIDI"
+          test -f "$binary"
+          lipo -verify_arch arm64 x86_64 "$binary"
+          codesign --verify --deep --strict --verbose=2 "$bundle"
+          stage="staging/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-macos-universal-vst3"
+          mkdir -p "$stage/models/strict-cap16-v3" dist
+          ditto "$bundle" "$stage/TM Guitar MIDI.vst3"
+          cp LICENSE WEIGHTS_LICENSE.md CREDITS.md THIRD_PARTY_NOTICES.md "$stage/"
+          cp models/strict-cap16-v3/MODEL_CARD.md \
+            models/strict-cap16-v3/SHA256SUMS "$stage/models/strict-cap16-v3/"
+          mkdir -p dist
+          archive="dist/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-macos-universal-vst3.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$stage" "$archive"
+          shasum -a 256 "$archive"
+
+      - name: Package Linux LV2
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          bundle='build/linux-lv2/plugin/TM_GuitarMidi_artefacts/Release/LV2/TM Guitar MIDI.lv2'
+          model="$bundle/TMModel"
+          cmake "-DTMGM_VERIFY_MODEL_ROOT=$model" -P cmake/VerifyModelPackage.cmake
+          test -f "$bundle/manifest.ttl"
+          mapfile -t binaries < <(find "$bundle" -maxdepth 1 -type f -name '*.so')
+          test "${#binaries[@]}" -eq 1
+          if ldd "${binaries[0]}" | grep -F 'not found'; then
+            echo 'LV2 has unresolved runtime dependencies' >&2
+            exit 1
+          fi
+          stage="staging/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-linux-x64-lv2"
+          mkdir -p "$stage/models/strict-cap16-v3" dist
+          cp -a "$bundle" "$stage/"
+          cp LICENSE WEIGHTS_LICENSE.md CREDITS.md THIRD_PARTY_NOTICES.md "$stage/"
+          cp models/strict-cap16-v3/MODEL_CARD.md \
+            models/strict-cap16-v3/SHA256SUMS "$stage/models/strict-cap16-v3/"
+          archive="dist/TM-Guitar-Midi-${TMGM_ARTIFACT_VERSION}-linux-x64-lv2.tar.gz"
+          tar -C "$(dirname "$stage")" -czf "$archive" "$(basename "$stage")"
+          sha256sum "$archive"
+
+      - name: Upload plug-in archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: TM-Guitar-Midi-${{ matrix.package }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,164 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "release-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "TMGM_BUILD_TESTS": "ON",
+        "TMGM_ENABLE_CUDA": "OFF"
+      }
+    },
+    {
+      "name": "windows-vst3",
+      "displayName": "Windows x64 VST3 (Ninja)",
+      "inherits": "release-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "TMGM_BUILD_PLUGIN": "ON",
+        "TMGM_BUILD_VST3": "ON",
+        "TMGM_BUILD_LV2": "OFF"
+      }
+    },
+    {
+      "name": "macos-vst3",
+      "displayName": "macOS universal VST3 (Ninja)",
+      "inherits": "release-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+        "TMGM_BUILD_PLUGIN": "ON",
+        "TMGM_BUILD_VST3": "ON",
+        "TMGM_BUILD_LV2": "OFF"
+      }
+    },
+    {
+      "name": "linux-lv2",
+      "displayName": "Linux x64 LV2 (Ninja)",
+      "inherits": "release-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "TMGM_BUILD_PLUGIN": "ON",
+        "TMGM_BUILD_VST3": "OFF",
+        "TMGM_BUILD_LV2": "ON"
+      }
+    },
+    {
+      "name": "native-release",
+      "displayName": "Native tools only (Ninja)",
+      "inherits": "release-base",
+      "cacheVariables": {
+        "TMGM_BUILD_PLUGIN": "OFF"
+      }
+    },
+    {
+      "name": "native-cuda",
+      "displayName": "Native CUDA trainer (Ninja)",
+      "inherits": "release-base",
+      "cacheVariables": {
+        "TMGM_BUILD_PLUGIN": "OFF",
+        "TMGM_ENABLE_CUDA": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-vst3",
+      "configurePreset": "windows-vst3",
+      "jobs": 2
+    },
+    {
+      "name": "macos-vst3",
+      "configurePreset": "macos-vst3",
+      "jobs": 2
+    },
+    {
+      "name": "linux-lv2",
+      "configurePreset": "linux-lv2",
+      "jobs": 2
+    },
+    {
+      "name": "native-release",
+      "configurePreset": "native-release",
+      "jobs": 2
+    },
+    {
+      "name": "native-cuda",
+      "configurePreset": "native-cuda",
+      "jobs": 2
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-vst3",
+      "configurePreset": "windows-vst3",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "timeout": 240
+      }
+    },
+    {
+      "name": "macos-vst3",
+      "configurePreset": "macos-vst3",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "timeout": 240
+      }
+    },
+    {
+      "name": "linux-lv2",
+      "configurePreset": "linux-lv2",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "timeout": 240
+      }
+    },
+    {
+      "name": "native-release",
+      "configurePreset": "native-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "timeout": 240
+      }
+    },
+    {
+      "name": "native-cuda",
+      "configurePreset": "native-cuda",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "timeout": 240
+      }
+    }
+  ]
+}

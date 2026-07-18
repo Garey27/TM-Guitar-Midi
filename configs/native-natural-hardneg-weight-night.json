@@ -1,0 +1,43 @@
+{
+  "defaults": {
+    "epochs": 30,
+    "clauses": 256,
+    "threshold": 128,
+    "max_literals": 64,
+    "samples_per_launch": 128,
+    "validation_patience": 6,
+    "activity": {
+      "specificity": 5.0,
+      "negative_samples": 6.0,
+      "seed": 20260718
+    },
+    "onset": {
+      "epochs": 24,
+      "specificity": 4.0,
+      "negative_samples": 0.5,
+      "seed": 20270718,
+      "onset_sustain_hard_negatives": true,
+      "onset_sustain_hard_negative_weight_only": true
+    }
+  },
+  "experiments": [
+    {
+      "name": "c256-natural-q05-hardweight-p005",
+      "onset": {
+        "onset_sustain_hard_negative_probability": 0.05
+      }
+    },
+    {
+      "name": "c256-natural-q05-hardweight-p01",
+      "onset": {
+        "onset_sustain_hard_negative_probability": 0.1
+      }
+    },
+    {
+      "name": "c256-natural-q05-hardweight-p02",
+      "onset": {
+        "onset_sustain_hard_negative_probability": 0.2
+      }
+    }
+  ]
+}

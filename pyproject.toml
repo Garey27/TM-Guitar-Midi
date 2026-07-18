@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tm-guitar-midi"
+version = "0.1.0"
+description = "Causal STFT+ and Tsetlin Machines for polyphonic guitar-to-MIDI"
+readme = "README.md"
+license = { text = "AGPL-3.0-only" }
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "soundfile>=0.13",
+    "mido>=1.3",
+]
+
+[project.optional-dependencies]
+train = [
+    "tmu @ git+https://github.com/cair/tmu.git@5d6d9da7d3e8c3a15e40f93b94ec882db518c57c",
+]
+test = ["pytest>=8.3"]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.12",
+]
+
+[project.scripts]
+tmgm-rt = "tmgm_rt.cli:main"
+tmgm-native-score-ensemble = "tmgm_rt.native_score_ensemble:cli"
+tmgm-native-ensemble-bundle = "tmgm_rt.native_ensemble_bundle:cli"
+tmgm-offline-listening = "tmgm_rt.offline_listening:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

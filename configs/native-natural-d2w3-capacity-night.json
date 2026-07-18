@@ -1,0 +1,30 @@
+{
+  "defaults": {
+    "epochs": 30,
+    "max_literals": 64,
+    "samples_per_launch": 128,
+    "validation_patience": 6,
+    "activity": {
+      "specificity": 5.0,
+      "negative_samples": 6.0,
+      "seed": 20260718
+    },
+    "onset": {
+      "specificity": 4.0,
+      "negative_samples": 8.0,
+      "seed": 20270718
+    }
+  },
+  "experiments": [
+    {
+      "name": "c512-t128-natural-d2w3-q8",
+      "clauses": 512,
+      "threshold": 128
+    },
+    {
+      "name": "c512-t256-natural-d2w3-q8",
+      "clauses": 512,
+      "threshold": 256
+    }
+  ]
+}

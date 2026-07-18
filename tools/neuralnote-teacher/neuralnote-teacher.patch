@@ -1,0 +1,114 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e132cbb..441faa4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -15,6 +15,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment ve
+ option(UniversalBinary "Build universal binary for mac" OFF)
+ option(RTNeural_Release "When CMAKE_BUILD_TYPE=Debug, overwrite it to Release for RTNeural only" OFF)
+ option(LTO "Enable Link Time Optimization" ON)
++option(BUILD_BATCH_TOOLS "Build headless NeuralNote teacher export tools" OFF)
+ 
+ if (UniversalBinary)
+     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
+@@ -150,6 +151,51 @@ target_link_libraries(${BaseTargetName}
+         PUBLIC
+         juce_recommended_config_flags)
+ 
++if (BUILD_BATCH_TOOLS)
++    execute_process(
++            COMMAND git rev-parse HEAD
++            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
++            OUTPUT_VARIABLE NEURALNOTE_UPSTREAM_COMMIT
++            OUTPUT_STRIP_TRAILING_WHITESPACE
++            ERROR_QUIET)
++    if (NOT NEURALNOTE_UPSTREAM_COMMIT)
++        set(NEURALNOTE_UPSTREAM_COMMIT unknown)
++    endif ()
++
++    juce_add_console_app(NeuralNoteBatch PRODUCT_NAME "NeuralNote Batch")
++    juce_generate_juce_header(NeuralNoteBatch)
++    target_sources(NeuralNoteBatch PRIVATE
++            ${CMAKE_CURRENT_LIST_DIR}/Tools/NeuralNoteBatch.cpp
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/Model/BasicPitch.cpp
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/Model/Features.cpp
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/Model/Notes.cpp
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/DSP/Resampler.cpp
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/Utils/AudioUtils.cpp)
++    target_include_directories(NeuralNoteBatch PRIVATE
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/Model
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/DSP
++            ${CMAKE_CURRENT_LIST_DIR}/Lib/Utils
++            ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/RTNeural
++            ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/minimp3
++            ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/onnxruntime/include)
++    target_compile_definitions(NeuralNoteBatch PRIVATE
++            SAVE_DOWNSAMPLED_AUDIO=0
++            USE_TEST_NOTE_FRAME_TO_TIME=0
++            JUCE_WEB_BROWSER=0
++            JUCE_USE_CURL=0
++            NEURALNOTE_UPSTREAM_COMMIT="${NEURALNOTE_UPSTREAM_COMMIT}")
++    target_link_libraries(NeuralNoteBatch PRIVATE
++            juce::juce_audio_formats
++            juce::juce_dsp
++            BasicPitchCNN
++            onnxruntime
++            bin_data
++            juce_recommended_config_flags)
++    if (${LTO})
++        target_link_libraries(NeuralNoteBatch PRIVATE juce_recommended_lto_flags)
++    endif ()
++endif ()
++
+ if (${LTO})
+     target_link_libraries(${BaseTargetName} PUBLIC juce_recommended_lto_flags)
+     message(STATUS "Link Time Optimization (LTO) enabled")
+diff --git a/Lib/Model/BasicPitch.cpp b/Lib/Model/BasicPitch.cpp
+index 856d5b6..ed37291 100644
+--- a/Lib/Model/BasicPitch.cpp
++++ b/Lib/Model/BasicPitch.cpp
+@@ -111,3 +111,23 @@ const std::vector<Notes::Event>& BasicPitch::getNoteEvents() const
+ {
+     return mNoteEvents;
+ }
++
++const std::vector<std::vector<float>>& BasicPitch::getContourPosteriorgram() const
++{
++    return mContoursPG;
++}
++
++const std::vector<std::vector<float>>& BasicPitch::getNotePosteriorgram() const
++{
++    return mNotesPG;
++}
++
++const std::vector<std::vector<float>>& BasicPitch::getOnsetPosteriorgram() const
++{
++    return mOnsetsPG;
++}
++
++size_t BasicPitch::getNumFrames() const
++{
++    return mNumFrames;
++}
+diff --git a/Lib/Model/BasicPitch.h b/Lib/Model/BasicPitch.h
+index 70bb5a8..ec95eee 100644
+--- a/Lib/Model/BasicPitch.h
++++ b/Lib/Model/BasicPitch.h
+@@ -49,6 +49,16 @@ public:
+      */
+     const std::vector<Notes::Event>& getNoteEvents() const;
+ 
++    /**
++     * Raw Basic Pitch posteriorgrams before non-causal note-event decoding.
++     * Exposed for offline teacher/student distillation; the NeuralNote plug-in
++     * continues to use getNoteEvents(). Layout is [frame][frequency bin].
++     */
++    const std::vector<std::vector<float>>& getContourPosteriorgram() const;
++    const std::vector<std::vector<float>>& getNotePosteriorgram() const;
++    const std::vector<std::vector<float>>& getOnsetPosteriorgram() const;
++    size_t getNumFrames() const;
++
+ private:
+     // Posteriorgrams vector
+     std::vector<std::vector<float>> mContoursPG;
+

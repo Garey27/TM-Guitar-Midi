@@ -1,0 +1,25 @@
+{
+  "defaults": {
+    "epochs": 30,
+    "clauses": 1024,
+    "threshold": 512,
+    "max_literals": 64,
+    "samples_per_launch": 128,
+    "validation_patience": 6
+  },
+  "experiments": [
+    {
+      "name": "c1024-t512-natural-d2w3-q8",
+      "activity": {
+        "specificity": 5.0,
+        "negative_samples": 6.0,
+        "seed": 20260718
+      },
+      "onset": {
+        "specificity": 4.0,
+        "negative_samples": 8.0,
+        "seed": 20270718
+      }
+    }
+  ]
+}

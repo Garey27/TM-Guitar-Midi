@@ -1,0 +1,53 @@
+# CMake and IDE output
+/build/
+/build-*/
+/out/
+/dist/
+/staging/
+/assets/
+/downloaded/
+/weights/
+/third_party/
+/NeuralNote/
+/cmake-build-*/
+/.cache/
+/.vs/
+/.vscode/
+/.idea/
+CMakeUserPresets.json
+
+# Python
+/.venv/
+/.pytest_cache/
+/.ruff_cache/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Local training corpora and generated experiments
+/datasets/
+/artifacts/
+/runs/
+*.tmgd
+*.tmgmmod
+*.tmgmscore
+*.nnpg
+*.pkl
+*.pt
+*.npy
+*.npz
+*.wav
+*.flac
+*.mid
+
+# Keep the small, versioned inference package despite binary extensions.
+!models/**/*.tmgmbundle
+!models/**/*.tmgmfront
+
+# Platform noise
+.DS_Store
+Thumbs.db
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
