@@ -55,7 +55,7 @@ jobs:
           path: downloaded
           merge-multiple: true
 
-      - name: Add non-commercial research weights and checksums
+      - name: Collect self-contained plug-in archives and checksums
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
@@ -64,26 +64,8 @@ jobs:
             echo 'tag must look like v0.1.0 or v0.1.0-alpha.1' >&2
             exit 2
           fi
-          mkdir -p assets weights/TM-Guitar-Midi-research-weights/models
+          mkdir -p assets
           find downloaded -maxdepth 1 -type f -exec cp {} assets/ \;
-          cp -a models/strict-cap16-v3 \
-            weights/TM-Guitar-Midi-research-weights/models/
-          for document in \
-            LICENSE WEIGHTS_LICENSE.md CREDITS.md \
-            THIRD_PARTY_NOTICES.md; do
-            if [[ -f "$document" ]]; then
-              cp "$document" weights/TM-Guitar-Midi-research-weights/
-            fi
-          done
-          cmake \
-            "-DTMGM_VERIFY_MODEL_ROOT=$PWD/weights/TM-Guitar-Midi-research-weights/models/strict-cap16-v3" \
-            -P cmake/VerifyModelPackage.cmake
-          (
-            cd weights
-            zip -9 -r \
-              "../assets/TM-Guitar-Midi-${RELEASE_TAG}-research-weights.zip" \
-              TM-Guitar-Midi-research-weights
-          )
           (
             cd assets
             sha256sum * > SHA256SUMS.txt
@@ -115,6 +97,7 @@ jobs:
             gh release create "$RELEASE_TAG" assets/* \
               --target "$GITHUB_SHA" \
               --title "TM Guitar MIDI $RELEASE_TAG" \
+              --notes "Each platform archive is self-contained: model weights are already inside the plug-in bundle and must not be installed separately." \
               --generate-notes \
               --draft \
               --prerelease
