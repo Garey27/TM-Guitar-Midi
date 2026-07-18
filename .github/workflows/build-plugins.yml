@@ -47,6 +47,12 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Set up x64 MSVC for Ninja
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756
+        with:
+          arch: x64
+
       - name: Install Linux build dependencies
         if: runner.os == 'Linux'
         run: |
